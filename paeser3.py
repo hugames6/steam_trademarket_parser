@@ -13,12 +13,12 @@ url_drop = input('URL: ' )
 currency = float(input('Curr: '))
 
 def get_page_source(url):
-    s = Service("E:\\VS_CODE\\Avito\\geckodriver.exe")
+    s = Service("\geckodriver.exe")
     useragent = UserAgent()
 
     options = webdriver.FirefoxOptions()
     options.set_preference("general.useragent.override", useragent.opera)
-    options.set_preference('intl.accept_languages', 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7')
+    # options.set_preference('intl.accept_languages', 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7')
 
     driver = webdriver.Firefox(service=s, options=options)
 
