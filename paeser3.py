@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 url_drop = input('URL: ' )
 currency = float(input('Curr: '))
+price_list = []
 
 def get_page_source(url):
     s = Service("\geckodriver.exe")
@@ -29,12 +30,22 @@ def get_page_source(url):
         items = driver.page_source
         with open('index1.html', "w", encoding="utf-8") as file:
             file.write(items)
+
+        soup = BeautifulSoup(items, "html.parser")
+
+        div = soup.find(id="searchResultsTable")
+        drop_price = div.find_all(class_="market_commodity_orders_header_promote")
+        drop_price = drop_price[1].text
+        drop_price = drop_price.split('$')
+        drop_price = float(drop_price[1]) * currency
+        print('Стоимость дропа: ' + "%.2f" % drop_price + ' руб.')
         # print(items)
     except Exception as ex:
         print(ex)
 
     driver.close()
     driver.quit()
+    return(drop_price)
 
 def get_price(sticker):
     with open('index1.html', 'r', encoding="utf-8") as file:
@@ -49,8 +60,9 @@ def get_price(sticker):
     price_ru = currency * price 
 
     print('Стоимость стикера ' + sticker + ': ' + "%.2f" % price_ru + ' руб.')
+    price_list.append(price_ru)
 
-def get_sticker_url():
+def get_sticker():
     with open('index1.html', 'r', encoding="utf-8") as file:
         page = file.read()
 
@@ -58,7 +70,6 @@ def get_sticker_url():
 
     div = soup.find(id="sticker_info")
     stick = div.find('br')
-
     text = ''
 
     while(stick):
@@ -69,6 +80,7 @@ def get_sticker_url():
             text += stick
 
     text = text.split(',')
+    
     print(f'Стикеров на оружии: {len(text)}')
     for stick in text:
         if 'Наклейка:' in stick:
@@ -94,11 +106,24 @@ def get_sticker_url():
             url = f'https://steamcommunity.com/market/search?q=Наклейка+%7C+{stick[0]}+{stick[1]}+{stick[2]}+{stick[3]}'
         elif length == 5:
             url = f'https://steamcommunity.com/market/search?q=Наклейка+%7C+{stick[0]}+{stick[1]}+{stick[2]}+{stick[3]}+{stick[4]}'
-
-        print(url)
+        elif length == 6:
+            url = f'https://steamcommunity.com/market/search?q=Наклейка+%7C+{stick[0]}+{stick[1]}+{stick[2]}+{stick[3]}+{stick[4]}+{stick[5]}'
+            
         get_page_source(url)
         get_price(sticker)
     return url
 
-get_page_source(url_drop)
-get_sticker_url()
+def percent(drop_price):
+    stickers_total_price = 0
+    for price in price_list:
+        stickers_total_price = stickers_total_price + price
+    print(f'Стоимость всех стикеров: ' + "%.2f" % stickers_total_price + ' руб.')
+    percent = stickers_total_price / drop_price
+    percent = float('%.2f' % percent) 
+
+    return percent
+
+drop_price = get_page_source(url_drop)
+get_sticker()
+per = percent(drop_price)
+print(f'Стоимость стикеров равнf {per * 100}% от стоимости дропа.')
